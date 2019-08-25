@@ -9,6 +9,7 @@ IPAddress ip(192, 168, 1, 252);         //set static ip
 IPAddress gateway(192, 168, 1, 254);    //set gateway
 IPAddress subnet(255, 255, 255, 0);     //set subnet
 WiFiServer server(WebPort);             //set server port
+int value = LOW;
  
 void setup() {
     //Set baud rate for serial monitor
@@ -36,17 +37,17 @@ void setup() {
 
     //Print the IP address
     Serial.print("CON : Connected using IP ");
-    Serial.print(WiFi.localIP());
-    Serial.print(":");
-    Serial.println(WebPort);
+    Serial.print(WiFi.localIP()); Serial.print(":");
+    Serial.println(WebPort); Serial.println("");
 }
 
-String WebHeader(){
+String ResponseHeader(){
     //set server response as http text/html
     String HtmlHeader = 
         String("HTTP/1.1 200 OK\r\n") +
         "Content-Type: text/html\r\n" +
-        "Connection: close\r\n" +
+        "Connection: Keep-Alive\r\n" +
+        "Keep-Alive: timeout=5, max=20\r\n" +
         "\r\n";
     return HtmlHeader;
 }
@@ -54,7 +55,7 @@ String WebHeader(){
 void loop() {
     //Show led to monitor activity
     digitalWrite(LedGpioPin, HIGH);
-    delay(2000);
+    delay(500);
     digitalWrite(LedGpioPin, LOW);
 
     //Check if a client has connected
@@ -76,20 +77,19 @@ void loop() {
     client.flush();
 
     //Process the request
-    int value = LOW;
-    if (request.indexOf("/RELAY=ON") != -1){
+    if (request.indexOf("/RELAY?ON") != -1){
         Serial.println("SYS : RELAY ON");
         digitalWrite(RelayGpioPin, LOW);
         value = LOW;
     }
-    if (request.indexOf("/RELAY=OFF") != -1){
+    if (request.indexOf("/RELAY?OFF") != -1){
         Serial.println("SYS : RELAY OFF");
         digitalWrite(RelayGpioPin, HIGH);
         value = HIGH;
     }
 
     //Return the response
-    client.println(WebHeader()); //this is a must
+    client.println(ResponseHeader()); //Always include Response Header In Every Page
     client.println("<!DOCTYPE html>");
     client.println("<html>");
     client.println("<head>");
@@ -128,8 +128,8 @@ void loop() {
     client.println("                <div id=\"main\" class=\"mycontainer\">");
     client.println("                    <h1>Xeon-Server Remote Management</h1>");
     client.println("                    <h3>Relay Status "); if(value == HIGH){client.print("OFF");}else{client.print("ON");} client.print("</h3>");
-    client.println("                    <h4>Turn <a href=\"/RELAY=OFF\">OFF</a> RELAY<h4>");
-    client.println("                    <h4>Turn <a href=\"/RELAY=ON\">ON</a> RELAY<h4>");
+    client.println("                    <h4>Turn <a href=\"/RELAY?OFF\">OFF</a> RELAY</h4>");
+    client.println("                    <h4>Turn <a href=\"/RELAY?ON\">ON</a> RELAY</h4>");
     client.println("                </div>");
     client.println("            </div>");
     client.println("        </div>");
