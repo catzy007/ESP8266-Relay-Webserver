@@ -45,9 +45,9 @@ String ResponseHeader(){
     //set server response as http text/html
     String HtmlHeader = 
         String("HTTP/1.1 200 OK\r\n") +
-        "Content-Type: text/html\r\n" +
+        "Content-Type: text/html; charset=UTF-8\r\n" +
         "Connection: Keep-Alive\r\n" +
-        "Keep-Alive: timeout=5, max=20\r\n" +
+        "Keep-Alive: timeout=10, max=20\r\n" +
         "\r\n";
     return HtmlHeader;
 }
