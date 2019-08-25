@@ -47,7 +47,7 @@ String ResponseHeader(){
         String("HTTP/1.1 200 OK\r\n") +
         "Content-Type: text/html; charset=UTF-8\r\n" +
         "Connection: Keep-Alive\r\n" +
-        "Keep-Alive: timeout=10, max=20\r\n" +
+        "Keep-Alive: timeout=5, max=20\r\n" +
         "\r\n";
     return HtmlHeader;
 }
@@ -65,7 +65,7 @@ void loop() {
     }
 
     //Wait until the client sends some data
-    Serial.println("SYS : Incoming Connection");
+    Serial.println("CON : Incoming Connection");
     while(!client.available()){
         delay(1);
     }
@@ -95,10 +95,12 @@ void loop() {
     client.println("<head>");
     client.println("    <meta charset=\"UTF-8\">");
     client.println("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
-    client.println("    <title>Hello</title>");
+    client.println("    <link rel=\"icon\" href=\"https://catzy007.github.io/assets/faviconW.png\" type=\"image/png\" sizes=\"16x16\">");
+    client.println("    <title>Remote Management</title>");
     client.println("    <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">");
     client.println("    <style>");
     client.println("        body{");
+    client.println("            background-color: #55688A;");
     client.println("            background-image: url(\"https://catzy007.github.io/assets/background.jpg\");");
     client.println("            min-height: 500px;");
     client.println("            background-attachment: fixed;");
@@ -127,7 +129,11 @@ void loop() {
     client.println("            <div class=\"col-sm-12\">");
     client.println("                <div id=\"main\" class=\"mycontainer\">");
     client.println("                    <h1>Xeon-Server Remote Management</h1>");
-    client.println("                    <h3>Relay Status "); if(value == HIGH){client.print("OFF");}else{client.print("ON");} client.print("</h3>");
+    if(value == HIGH){
+        client.println("                    <h3>Relay Status OFF</h3>");
+    }else{
+        client.println("                    <h3>Relay Status ON</h3>");
+    }
     client.println("                    <h4>Turn <a href=\"/RELAY?OFF\">OFF</a> RELAY</h4>");
     client.println("                    <h4>Turn <a href=\"/RELAY?ON\">ON</a> RELAY</h4>");
     client.println("                </div>");
@@ -141,6 +147,6 @@ void loop() {
     client.println("</html>");
 
     delay(1);
-    Serial.println("SYS : Connection Terminated");
+    Serial.println("CON : Connection Terminated");
     Serial.println("");
 }
