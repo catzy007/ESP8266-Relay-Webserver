@@ -2,10 +2,11 @@
  
 const char* ssid = "YOUR_SSID";         //fill in here your router or wifi SSID
 const char* password = "YOUR_PASSWORD"; //fill in here your router or wifi password
+const int LedGpioPin = 2;               //GPIO pin for onboard LED
 const int RelayGpioPin = 0;             //relay connected to GPIO0
 const int WebPort = 80;                 //web server port. default=80
 IPAddress ip(192, 168, 1, 252);         //set static ip
-IPAddress gateway(192, 168, 1, 254);    //set getteway
+IPAddress gateway(192, 168, 1, 254);    //set gateway
 IPAddress subnet(255, 255, 255, 0);     //set subnet
 WiFiServer server(WebPort);             //set server port
  
@@ -14,6 +15,7 @@ void setup() {
     Serial.begin(115200);
 
     //Configure and set initial value GPIO PIN
+    pinMode(LedGpioPin, OUTPUT);
     pinMode(RelayGpioPin, OUTPUT);
     digitalWrite(RelayGpioPin, LOW);
 
@@ -50,6 +52,11 @@ String WebHeader(){
 }
  
 void loop() {
+    //Show led to monitor activity
+    digitalWrite(LedGpioPin, HIGH);
+    delay(2000);
+    digitalWrite(LedGpioPin, LOW);
+
     //Check if a client has connected
     WiFiClient client = server.available();
     if(!client){
