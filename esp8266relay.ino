@@ -58,95 +58,92 @@ void loop() {
     delay(500);
     digitalWrite(LedGpioPin, LOW);
 
-    //Check if a client has connected
     WiFiClient client = server.available();
-    if(!client){
-        return;
+    //Wait for a client (web browser) to connect
+    if (client) {
+        Serial.println("CON : Incoming Connection");
+        while (client.connected()){
+            if (client.available()){
+                //Read the first line of the request
+                String request = client.readStringUntil('\r');
+                Serial.print("SYS : ");
+                Serial.println(request);
+                client.flush();
+                //Process the request
+                if (request.indexOf("/RELAY?ON") != -1){
+                    Serial.println("SYS : RELAY ON");
+                    digitalWrite(RelayGpioPin, LOW);
+                    value = LOW;
+                }
+                if (request.indexOf("/RELAY?OFF") != -1){
+                    Serial.println("SYS : RELAY OFF");
+                    digitalWrite(RelayGpioPin, HIGH);
+                    value = HIGH;
+                }
+                //Return the response
+                client.println(ResponseHeader()); //Always include Response Header In Every Page
+                client.println("<!DOCTYPE html>");
+                client.println("<html>");
+                client.println("<head>");
+                client.println("    <meta charset=\"UTF-8\">");
+                client.println("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+                client.println("    <link rel=\"icon\" href=\"https://catzy007.github.io/assets/faviconW.png\" type=\"image/png\" sizes=\"16x16\">");
+                client.println("    <title>Remote Management</title>");
+                client.println("    <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">");
+                client.println("    <style>");
+                client.println("        body{");
+                client.println("            background-color: #55688A;");
+                client.println("            background-image: url(\"https://catzy007.github.io/assets/background.jpg\");");
+                client.println("            min-height: 500px;");
+                client.println("            background-attachment: fixed;");
+                client.println("            background-position: center;");
+                client.println("            background-repeat: no-repeat;");
+                client.println("            background-size: cover;");
+                client.println("        }");
+                client.println("        .mycontainer{");
+                client.println("            top: 50px;");
+                client.println("            left: 0;");
+                client.println("            right: 0;");
+                client.println("            padding: 15%;");
+                client.println("            margin-left: auto;");
+                client.println("            margin-right: auto;");
+                client.println("            background-color: rgba(253, 253, 253, 0.9);");
+                client.println("            min-height: 100vh;");
+                client.println("		    overflow: auto;");
+                client.println("            border: 2px solid #ccc;");
+                client.println("            border-radius: 10px;");
+                client.println("        }");
+                client.println("    </style>");
+                client.println("</head>");
+                client.println("<body>");
+                client.println("    <div class=\"container\">");
+                client.println("        <div class=\"row justify-content-center\">");
+                client.println("            <div class=\"col-sm-12\">");
+                client.println("                <div id=\"main\" class=\"mycontainer\">");
+                client.println("                    <h1>Xeon-Server Remote Management</h1>");
+                if(value == HIGH){
+                    client.println("                    <h3>Relay Status OFF</h3>");
+                }else{
+                    client.println("                    <h3>Relay Status ON</h3>");
+                }
+                client.println("                    <h4>Turn <a href=\"/RELAY?OFF\">OFF</a> RELAY</h4>");
+                client.println("                    <h4>Turn <a href=\"/RELAY?ON\">ON</a> RELAY</h4>");
+                client.println("                </div>");
+                client.println("            </div>");
+                client.println("        </div>");
+                client.println("    </div>");
+                client.println("    <script src=\"https://code.jquery.com/jquery-3.3.1.slim.min.js\" integrity=\"sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo\" crossorigin=\"anonymous\"></script>");
+                client.println("    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js\" integrity=\"sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1\" crossorigin=\"anonymous\"></script>");
+                client.println("    <script src=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js\" integrity=\"sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM\" crossorigin=\"anonymous\"></script>");
+                client.println("</body>");
+                client.println("</html>");
+                break; //Get out of loop
+            }
+        }
+        delay(1); //Give the web browser time to receive the data
+        //Close the connection
+        //client.stop();
+        Serial.println("CON : Connection Terminated");
+        Serial.println("");
     }
-
-    //Wait until the client sends some data
-    Serial.println("CON : Incoming Connection");
-    while(!client.available()){
-        delay(1);
-    }
-
-    //Read the first line of the request
-    String request = client.readStringUntil('\r');
-    Serial.print("SYS : ");
-    Serial.println(request);
-    client.flush();
-
-    //Process the request
-    if (request.indexOf("/RELAY?ON") != -1){
-        Serial.println("SYS : RELAY ON");
-        digitalWrite(RelayGpioPin, LOW);
-        value = LOW;
-    }
-    if (request.indexOf("/RELAY?OFF") != -1){
-        Serial.println("SYS : RELAY OFF");
-        digitalWrite(RelayGpioPin, HIGH);
-        value = HIGH;
-    }
-
-    //Return the response
-    client.println(ResponseHeader()); //Always include Response Header In Every Page
-    client.println("<!DOCTYPE html>");
-    client.println("<html>");
-    client.println("<head>");
-    client.println("    <meta charset=\"UTF-8\">");
-    client.println("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
-    client.println("    <link rel=\"icon\" href=\"https://catzy007.github.io/assets/faviconW.png\" type=\"image/png\" sizes=\"16x16\">");
-    client.println("    <title>Remote Management</title>");
-    client.println("    <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\">");
-    client.println("    <style>");
-    client.println("        body{");
-    client.println("            background-color: #55688A;");
-    client.println("            background-image: url(\"https://catzy007.github.io/assets/background.jpg\");");
-    client.println("            min-height: 500px;");
-    client.println("            background-attachment: fixed;");
-    client.println("            background-position: center;");
-    client.println("            background-repeat: no-repeat;");
-    client.println("            background-size: cover;");
-    client.println("        }");
-    client.println("        .mycontainer{");
-    client.println("            top: 50px;");
-    client.println("            left: 0;");
-    client.println("            right: 0;");
-    client.println("            padding: 15%;");
-    client.println("            margin-left: auto;");
-    client.println("            margin-right: auto;");
-    client.println("            background-color: rgba(253, 253, 253, 0.9);");
-    client.println("            min-height: 100vh;");
-    client.println("		    overflow: auto;");
-    client.println("            border: 2px solid #ccc;");
-    client.println("            border-radius: 10px;");
-    client.println("        }");
-    client.println("    </style>");
-    client.println("</head>");
-    client.println("<body>");
-    client.println("    <div class=\"container\">");
-    client.println("        <div class=\"row justify-content-center\">");
-    client.println("            <div class=\"col-sm-12\">");
-    client.println("                <div id=\"main\" class=\"mycontainer\">");
-    client.println("                    <h1>Xeon-Server Remote Management</h1>");
-    if(value == HIGH){
-        client.println("                    <h3>Relay Status OFF</h3>");
-    }else{
-        client.println("                    <h3>Relay Status ON</h3>");
-    }
-    client.println("                    <h4>Turn <a href=\"/RELAY?OFF\">OFF</a> RELAY</h4>");
-    client.println("                    <h4>Turn <a href=\"/RELAY?ON\">ON</a> RELAY</h4>");
-    client.println("                </div>");
-    client.println("            </div>");
-    client.println("        </div>");
-    client.println("    </div>");
-    client.println("    <script src=\"https://code.jquery.com/jquery-3.3.1.slim.min.js\" integrity=\"sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo\" crossorigin=\"anonymous\"></script>");
-    client.println("    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js\" integrity=\"sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1\" crossorigin=\"anonymous\"></script>");
-    client.println("    <script src=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js\" integrity=\"sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM\" crossorigin=\"anonymous\"></script>");
-    client.println("</body>");
-    client.println("</html>");
-
-    delay(1);
-    Serial.println("CON : Connection Terminated");
-    Serial.println("");
 }
