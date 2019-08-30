@@ -12,6 +12,9 @@ WiFiServer server(WebPort);             //set server port
 int value = LOW;
  
 void setup() {
+    //set to only regular wifi mode
+    WiFi.mode(WIFI_STA);
+
     //Set baud rate for serial monitor
     Serial.begin(115200);
 
